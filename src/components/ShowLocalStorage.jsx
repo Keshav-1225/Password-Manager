@@ -1,9 +1,7 @@
-import React from 'react'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Tooltip } from 'react-tooltip';
 import { toast, Bounce } from 'react-toastify';
 import { getData } from '../services/api';
-
 
 const ShowLocalStorage = ({ passwordArray, setPasswordArray, setform, setIsEditing }) => {
     const [activeView, setActiveView] = useState("local");
@@ -23,7 +21,7 @@ const ShowLocalStorage = ({ passwordArray, setPasswordArray, setform, setIsEditi
 
             try {
                 const data = await getData();
-                setServerPasswords(data);
+                setServerPasswords(data || []);
             } catch {
                 setServerError("Could not load server passwords");
                 toast.error('Could not load server passwords', {
@@ -124,10 +122,11 @@ const ShowLocalStorage = ({ passwordArray, setPasswordArray, setform, setIsEditi
                     </button>
                 </div>
             </div>
+
             {isLoadingServer && <div>Loading server passwords...</div>}
             {serverError && activeView === "server" && <div className='text-red-600'>{serverError}</div>}
             {!isLoadingServer && passwordsToShow.length === 0 && <div>NO passwords to show</div>}
-            {!isLoadingServer && passwordsToShow.length != 0 &&
+            {!isLoadingServer && passwordsToShow.length !== 0 &&
                 <table className="table-auto w-full">
                     <thead className='bg-blue-800 text-white'>
                         <tr>
@@ -187,7 +186,6 @@ const ShowLocalStorage = ({ passwordArray, setPasswordArray, setform, setIsEditi
             <Tooltip id='copy-password' />
             <Tooltip id='edit-btn' />
             <Tooltip id='delete-btn' />
-
         </div>
     )
 }

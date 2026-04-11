@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { ToastContainer, Bounce } from 'react-toastify';
 import { v4 as uuidv4 } from 'uuid';
 import ShowLocalStorage from './ShowLocalStorage';
-import { getData } from '../services/api';
+import { postData } from '../services/api';
 
 const Manager = () => {
   const [form, setform] = useState({ _id: "", site: "", username: "", password: "" });
@@ -17,7 +17,12 @@ const Manager = () => {
 
   const savePasswordToServer = async(e)=>{
     e.preventDefault()
-    let data = await getData()
+    let serverData = {
+      site: form.site,
+      username: form.username,
+      password: form.password
+    }
+    let data = await postData(serverData)
     console.log(data)
   }
 

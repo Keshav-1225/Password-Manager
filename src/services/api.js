@@ -1,7 +1,7 @@
 import axios from "axios"
 
+const uri = import.meta.env.VITE_FRONTEND_URI
 export const getData = async () => {
-  const uri = import.meta.env.VITE_FRONTEND_URI
     if (!uri) {
     throw new Error("FRONTEND_URI is not defined")
   }
@@ -13,4 +13,16 @@ export const getData = async () => {
     console.error("Error fetching data:", error.message)
     throw error
   }
+}
+
+export const postData = async (params) => 
+{
+    try
+    {
+        const response = await axios.post(uri,params)
+        return response
+    }catch(err){
+        console.error(err.response?.data || err.message)
+        throw err
+    }
 }
