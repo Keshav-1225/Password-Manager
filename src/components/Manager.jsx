@@ -1,76 +1,47 @@
 import React from 'react'
-import { useEffect, useState } from 'react'
-import { Tooltip } from 'react-tooltip';
-import { ToastContainer, toast, Bounce } from 'react-toastify';
+import { useState } from 'react'
+import { ToastContainer, Bounce } from 'react-toastify';
 import { v4 as uuidv4 } from 'uuid';
-
-
+import ShowLocalStorage from './ShowLocalStorage';
+import { getData } from '../services/api';
 
 const Manager = () => {
-  const [form, setform] = useState({ uuid:"", site: "", username: "", password: ""});
-  const [passwordArray, setPasswordArray] = useState([]);
+  const [form, setform] = useState({ _id: "", site: "", username: "", password: "" });
+  const [passwordArray, setPasswordArray] = useState(() => {
+    const passwords = localStorage.getItem("passwords")
+    return passwords ? JSON.parse(passwords) : []
+  });
   const [isEditing, setIsEditing] = useState(false);
 
-  useEffect(() => {
-    let passwords = localStorage.getItem("passwords")
+  
 
-    if (passwords) {
-      setPasswordArray(JSON.parse(passwords))
-    }
-  }, [])
+  const savePasswordToServer = async(e)=>{
+    e.preventDefault()
+    let data = await getData()
+    console.log(data)
+  }
 
   const savePassword = (e) => {
     e.preventDefault()
-    if(isEditing)
-    {
-      const updatedArray = passwordArray.map(item=>
-        item.uuid === form.uuid ? form : item
+
+    if (isEditing) {
+      const updatedArray = passwordArray.map(item =>
+        item._id === form._id ? form : item
       )
       setPasswordArray(updatedArray)
       localStorage.setItem("passwords", JSON.stringify(updatedArray))
       setIsEditing(false)
-      setform({ uuid: "", site: "", username: "", password: "" });  // Reset form
-    }else{
-
-      const newArray = [...passwordArray, {...form, uuid:uuidv4()}]
+      setform({ _id: "", site: "", username: "", password: "" });
+    } else {
+      const newArray = [...passwordArray, { ...form, _id: uuidv4() }]
       setPasswordArray(newArray)
       localStorage.setItem("passwords", JSON.stringify(newArray))
-      console.log(localStorage.getItem("passwords"))
+      setform({ _id: "", site: "", username: "", password: "" });
     }
   }
 
   const handleChange = (e) => {
     setform({ ...form, [e.target.name]: e.target.value })
-  }
-
-  const handleCopy = (text) => {
-    toast.success('Successfully copied to clipboard!', {
-      position: "top-right",
-      autoClose: 2000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: false,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
-      transition: Bounce,
-    });
-
-    console.log(text)
-    navigator.clipboard.writeText(text)
-  }
-
-  const handleEdit = (e)=>{
-    let data = passwordArray.filter(item => item.uuid === e)
-    setform(data[0])
-    setIsEditing(true)
-    
-  }
-  const handleDelete = (e)=>{
-    console.log('delete Initiated: '+e)
-    setPasswordArray(passwordArray.filter(item=>item.uuid != e))
-    localStorage.setItem("passwords",JSON.stringify(passwordArray.filter(item=>item.uuid != e)))
-
   }
 
   return (
@@ -136,80 +107,26 @@ const Manager = () => {
               className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50 hover:bg-white'
             />
           </div>
-
-          <button
-            type="submit" onClick={savePassword}
-            className='w-full bg-linear-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl'
-          >
-            Save Password
-          </button>
+          <div className='flex gap-3'>
+            <button
+              type="submit" onClick={savePassword}
+              className=' bg-linear-to-r from-blue-600 to-indigo-600 text-white font-semibold py-1 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl'
+            >
+              Save Password Locally
+            </button>
+            <button
+              type='submit' onClick={savePasswordToServer} 
+              className='bg-green-600 text-white font-semibold py-1 px-4 rounded-lg'>Save password on server</button>
+          </div>
         </form>
       </div>
-      <div className='w-[50vw] bg-white rounded-2xl shadow-2xl p-8 border border-gray-100'>
-        <div className='text-2xl font-bold'>Saved Passwords</div>
-        {passwordArray.length === 0 && <div>NO passwords to show</div>}
-        {passwordArray.length != 0 &&
-          <table className="table-auto w-full">
-            <thead className='bg-blue-800 text-white'>
-              <tr>
-                <th>Website</th>
-                <th>Username</th>
-                <th>Password</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {passwordArray.map((items, index) => (
-                <tr key={index}>
-                  <td className=''>
-                    <div className='flex justify-between'>{items.site}
-                      <span data-tooltip-id='copy-site' data-tooltip-content={'Copy'} onClick={() => handleCopy(items.site)}>
-                        <img src="/copy.png" width="20px" className='mr-4 hover:cursor-pointer' />
-                      </span>
-                    </div>
-                  </td>
-
-                  <td className=''><div className='flex justify-between'>
-                    {items.username}
-                    <span data-tooltip-id='copy-username' data-tooltip-content={'Copy'} onClick={() => handleCopy(items.username)}>
-                      <img src="/copy.png" width="20px" className='mr-4 hover:cursor-pointer' />
-                    </span>
-                  </div>
-                  </td>
-                  <td className=''><div className='flex justify-between'>
-                    {items.password}
-                    <span data-tooltip-id='copy-password' data-tooltip-content={'Copy'} onClick={() => handleCopy(items.password)}>
-                      <img src="/copy.png" width="20px" className='mr-4 hover:cursor-pointer' /></span>
-                  </div>
-                  </td>
-                  <td className='text-center'>
-                    <div className='flex justify-center space-x-4'>
-                      <span data-tooltip-id='edit-btn' data-tooltip-content={'Edit'} className='hover:cursor-pointer' onClick={()=>handleEdit(items.uuid)}>
-                      <lord-icon src="https://cdn.lordicon.com/fikcyfpp.json" trigger="hover" style={{ width: '25px', height: '25px' }}>
-                      </lord-icon>
-                      </span>
-                      <span data-tooltip-id='delete-btn' data-tooltip-content={'Delete'} onClick={()=>handleDelete(items.uuid)} className='hover:cursor-pointer'>
-                      <lord-icon
-                        src="https://cdn.lordicon.com/sxhqklqh.json"
-                        trigger="hover"
-                        colors="primary:#e4e4e4,secondary:#000000,tertiary:#646e78"
-                        style={{ width: "25px", height: "25px" }}>
-                      </lord-icon>
-                          </span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        }
-        <Tooltip id="copy-site" />
-        <Tooltip id='copy-username' />
-        <Tooltip id='copy-password' />
-        <Tooltip id='edit-btn'/>
-        <Tooltip id='delete-btn' />
-
-      </div>
+      {/* Show local storage */}
+      <ShowLocalStorage
+        passwordArray={passwordArray}
+        setPasswordArray={setPasswordArray}
+        setform={setform}
+        setIsEditing={setIsEditing}
+      />
     </div>
   )
 }
