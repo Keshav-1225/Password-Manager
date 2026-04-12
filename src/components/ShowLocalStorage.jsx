@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { Tooltip } from 'react-tooltip';
 import { toast, Bounce } from 'react-toastify';
-import { getData } from '../services/api';
+import { deleteData, getData, patchData } from '../services/api';
 
-const ShowLocalStorage = ({ passwordArray, setPasswordArray, setform, setIsEditing }) => {
+const ShowLocalStorage = ({ passwordArray, setPasswordArray, setform, setIsEditing, refreshServer }) => {
     const [activeView, setActiveView] = useState("local");
     const [serverPasswords, setServerPasswords] = useState([]);
     const [isLoadingServer, setIsLoadingServer] = useState(false);
     const [serverError, setServerError] = useState("");
     const passwordsToShow = activeView === "local" ? passwordArray : serverPasswords;
-
+    const [serverEditing, setServerEditing] = useState(false)
     useEffect(() => {
         if (activeView !== "server") {
             return;
@@ -41,7 +41,7 @@ const ShowLocalStorage = ({ passwordArray, setPasswordArray, setform, setIsEditi
         }
 
         fetchServerPasswords();
-    }, [activeView])
+    }, [activeView, refreshServer])
 
     const handleCopy = (text) => {
         toast.success('Successfully copied to clipboard!', {
@@ -60,29 +60,22 @@ const ShowLocalStorage = ({ passwordArray, setPasswordArray, setform, setIsEditi
     }
 
     const handleEdit = (id) => {
+        let data;
         if (activeView === "server") {
-            toast.info('Server password editing is not connected yet', {
-                position: "top-right",
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "light",
-                transition: Bounce,
-            });
-            return;
+            data = serverPasswords.find(item => item._id === id)
+        } else {
+            data = passwordArray.find(item => item._id === id)
         }
+        if (data) {
 
-        let data = passwordArray.find(item => item._id === id)
-        setform(data)
-        setIsEditing(true)
+            setform(data)
+            setIsEditing(true)
+        }
     }
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (activeView === "server") {
-            toast.info('Server password deleting is not connected yet', {
+            toast.info('Server password deleting', {
                 position: "top-right",
                 autoClose: 2000,
                 hideProgressBar: false,
@@ -93,6 +86,9 @@ const ShowLocalStorage = ({ passwordArray, setPasswordArray, setform, setIsEditi
                 theme: "light",
                 transition: Bounce,
             });
+            const deletedData = await deleteData(id)
+            console.log(deletedData)
+            setServerPasswords(await getData())
             return;
         }
 

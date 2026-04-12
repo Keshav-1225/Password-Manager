@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { ToastContainer, Bounce } from 'react-toastify';
 import { v4 as uuidv4 } from 'uuid';
 import ShowLocalStorage from './ShowLocalStorage';
-import { postData } from '../services/api';
+import { postData, patchData } from '../services/api';
 
 const Manager = () => {
   const [form, setform] = useState({ _id: "", site: "", username: "", password: "" });
@@ -12,18 +12,40 @@ const Manager = () => {
     return passwords ? JSON.parse(passwords) : []
   });
   const [isEditing, setIsEditing] = useState(false);
+  const [refreshServer, setRefreshServer] = useState(0);
 
   
 
-  const savePasswordToServer = async(e)=>{
-    e.preventDefault()
-    let serverData = {
-      site: form.site,
-      username: form.username,
-      password: form.password
+  const savePasswordToServer = async (e) => {
+    e.preventDefault();
+
+    if (isEditing) {
+      let patchPayload = {
+        _id: form._id,
+        site: form.site,
+        username: form.username,
+        password: form.password
+      };
+      
+      await patchData(patchPayload);
+
+      setIsEditing(false);
+      setform({ _id: "", site: "", username: "", password: "" });
+      setRefreshServer(prev => prev + 1);
+      console.log("Updated on server!");
+
+    } else {
+      let serverData = {
+        site: form.site,
+        username: form.username,
+        password: form.password
+      };
+      let data = await postData(serverData);
+      console.log(data);
+      
+      setform({ _id: "", site: "", username: "", password: "" });
+      setRefreshServer(prev => prev + 1);
     }
-    let data = await postData(serverData)
-    console.log(data)
   }
 
   const savePassword = (e) => {
@@ -131,6 +153,7 @@ const Manager = () => {
         setPasswordArray={setPasswordArray}
         setform={setform}
         setIsEditing={setIsEditing}
+        refreshServer={refreshServer}
       />
     </div>
   )

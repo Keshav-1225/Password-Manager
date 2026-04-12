@@ -26,3 +26,35 @@ export const postData = async (params) =>
         throw err
     }
 }
+
+export async function patchData(params)
+{
+    try
+    {
+        const response = await axios.patch(`${uri}${params._id}`,
+            {
+                site: params.site,
+                username: params.username,
+                password: params.password
+            }
+        )
+        return response
+    }catch(err)
+    {
+        console.log(err.message);
+        throw err
+    }
+}
+
+export async function deleteData(id)
+{
+    try
+    {
+        const deletedData = axios.delete(`${uri}${id}`)
+        return deletedData
+    }catch(err)
+    {
+        console.log("Error in api deleteData");
+        throw err
+    }
+}
